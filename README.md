@@ -31,33 +31,30 @@ che contano.
 
 ## Scarica e installa (Android)
 
-1. Scarica [`brain-break-armeabi-v7a.apk`](./brain-break-armeabi-v7a.apk).
+L'app si scarica dalla pagina delle
+**[Release](https://github.com/alessiosavi/brain-break/releases/latest)**:
+
+1. Apri l'ultima release e scarica `brain-break-<versione>-arm64-v8a.apk` (per
+   telefoni Android moderni a 64 bit — praticamente tutti quelli degli ultimi anni).
 2. Sul telefono apri il file e, se richiesto, consenti **«Installa app
    sconosciute»** per il browser o il gestore file.
 3. Apri l'app, registrati e inizia a giocare.
 
-> Questa build è compilata per `armeabi-v7a` (Android a 32 bit) e gira sulla
-> grande maggioranza dei telefoni, anche un po' datati.
-
 ## È sicuro?
 
-Trasparenza totale — ecco cosa chiede l'app e come verificarlo tu stesso.
+Trasparenza totale: l'analisi di sicurezza completa (scansione statica MobSF,
+con triage di ogni segnalazione) è in **[SECURITY.md](./SECURITY.md)**. In sintesi:
 
-**Permessi richiesti** (nessun accesso a posizione, contatti, fotocamera,
-microfono, SMS o file personali):
+**Permessi richiesti** — nessun accesso a posizione, contatti, fotocamera,
+microfono, SMS o file personali:
 
 - `INTERNET` — per comunicare con il server.
 - `POST_NOTIFICATIONS` + `VIBRATE` — per avvisarti quando puoi rigiocare.
 - `USE_BIOMETRIC` / `USE_CREDENTIALS` — per l'accesso sicuro (passkey).
 
-**Verifica l'integrità del file** (SHA-256):
-
-```
-047129bbe25132a32321fd269b0873c0d04ca92a0ca4af9fb3610e5607891872  brain-break-armeabi-v7a.apk
-```
-
-Controllalo con `shasum -a 256 <file>` (macOS), `sha256sum <file>` (Linux) o
-`certutil -hashfile <file> SHA256` (Windows): deve corrispondere esattamente.
+**Verifica l'integrità del file** — ogni release pubblica lo **SHA-256**
+dell'APK: confrontalo con `shasum -a 256 <file>` (macOS), `sha256sum <file>`
+(Linux) o `certutil -hashfile <file> SHA256` (Windows).
 
 L'app è firmata con il certificato di rilascio **AppVibing** e, al momento
 dell'installazione, viene analizzata automaticamente da **Google Play Protect**.
