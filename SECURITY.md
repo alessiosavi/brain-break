@@ -4,8 +4,8 @@ Questa pagina riporta in modo trasparente l'analisi di sicurezza dell'APK di
 Brain Break, così puoi installarlo con fiducia.
 
 - **App analizzata:** `brain-break-0.0.1-arm64-v8a.apk`
-- **Strumento:** [MobSF](https://github.com/MobSF/Mobile-Security-Framework-MobSF) — analisi **statica**
-- **Firma:** certificato di rilascio AppVibing (`CN=alessiosavi, O=AppVibing`)
+- **Strumento:** [MobSF](https://github.com/MobSF/Mobile-Security-Framework-MobSF) — analisi **statica** e **dinamica**
+- **Firma:** certificato di rilascio dedicato (`CN=Brain Break, O=Alessio Savi`; impronta SHA-256 del certificato `0d6521209d665ad713a9e34167a09365122ed1cd28313317d0ee294ad22cc359`)
 
 ## Esito in breve
 
@@ -65,21 +65,51 @@ Il testo segnalato sono **nomi di campi interni** (es. `key`, `callback_handle`)
 dentro la libreria open-source `flutter_local_notifications`, **non** password o
 segreti reali.
 
-## Analisi dinamica (non inclusa)
+## Analisi dinamica (eseguita) ✅
 
-Questo report copre l'analisi **statica**. L'analisi **dinamica** di MobSF non è
-stata eseguita perché richiede un emulatore/dispositivo Android collegato a
-MobSF; senza di esso MobSF restituisce:
+L'analisi **dinamica** è stata eseguita con il dynamic analyzer di MobSF su un
+**emulatore Android 9 (API 28, `arm64-v8a`, immagine Google APIs)** con
+**Frida 17.8.2**, `/system` scrivibile e CA di MobSF installata.
+*Nota tecnica:* MobSF supporta la dynamic analysis fino ad **Android 11 (API 30)**;
+si è scelto **Android 9** perché su Android 10+ `libart.so` è dentro l'**APEX ART**
+e l'iniezione/spawn di Frida fallisce (`unable to load libart.so`) — su Android 9
+la libreria è in `/system/lib64` e l'instrumentazione funziona in modo affidabile.
 
-> *MobSF cannot find the android device identifier … set `ANALYZER_IDENTIFIER`
-> in `~/.MobSF/config.py` or via `MOBSF_ANALYZER_IDENTIFIER`.*
+**Esito: nessuna vulnerabilità a runtime — conferma il risultato statico.**
 
-Per eseguirla servono: un emulatore Android avviato (es. AVD/Genymotion con
-MobSFy), l'ID dispositivo (`adb devices`) impostato in
-`MOBSF_ANALYZER_IDENTIFIER`, quindi l'avvio della dynamic analysis dalla UI di
-MobSF. Verificherebbe a runtime cose come il traffico TLS, l'archiviazione su
-disco e le chiamate sensibili — aspetti che, staticamente, risultano già
-conformi (HTTPS obbligatorio, nessun permesso invasivo, JWT lato server).
+- **Nessun componente esportato attaccabile.** L'activity tester ha avviato le 5
+  Activity dell'app (la `MainActivity` di Flutter più Activity delle librerie
+  `url_launcher`/Credentials/Google Play Services); il test sulle Activity
+  **esportate non ha trovato nulla** (lista vuota) → nessuna superficie IPC
+  esposta, in linea con l'analisi statica.
+- **Traffico solo cifrato** (`has_cleartext = false`): nessun HTTP in chiaro. I
+  domini contattati a runtime sono **solo infrastruttura di sistema Google/Android**
+  (`*.gstatic.com`, `connectivitycheck.gstatic.com`, `android.googleapis.com/checkin`
+  — i controlli di connettività del sistema operativo), **non** endpoint dell'app.
+- **Nessun segreto in chiaro nello storage.** La sandbox dell'app conteneva solo
+  file di default della WebView (`WebViewChromiumPrefs.xml`, `Web Data`) e cache
+  benigna del motore Flutter; **nessun token/password in chiaro** nei `shared_prefs`.
+  La sessione Supabase è gestita da `flutter_secure_storage` (cifrata tramite
+  Android Keystore), non in chiaro su disco.
+- **0 tracker** rilevati (su 432 firme note). Nessuna stringa base64 sospetta,
+  nessuna scrittura in clipboard.
+- **Una sola nota di hardening: assenza di certificate pinning**
+  (`tls_misconfigured = true`). L'app si affida allo store di CA **di sistema**
+  (comportamento standard dell'SDK Supabase); con una CA di sistema iniettata da
+  MobSF il traffico risulta intercettabile, ma ciò richiede un dispositivo **già
+  compromesso (root)**. Il pinning è una difesa **aggiuntiva e opzionale**, non un
+  requisito — non è una vulnerabilità.
+
+**Limiti onesti di questo test.** Gli hook di MobSF (API monitor / Droidmon)
+intercettano le API **Java/Kotlin**, ma la logica di un'app **Flutter** gira in
+**Dart** (`libapp.so`) e la rete passa per lo stack **BoringSSL di Dart**, non per
+le API Java: per questo il monitoraggio runtime di MobSF cattura poco del codice
+dell'app (API monitor vuoto) e **non vede il traffico applicativo verso Supabase**
+— è un **limite noto** dell'analisi dinamica sulle app Flutter, non un segnale di
+problemi. Inoltre l'esecuzione è stata **non interattiva** (nessun login reale),
+quindi i flussi autenticati non sono stati esercitati a fondo. Per questi aspetti
+la fonte primaria resta l'analisi statica, che risulta conforme (HTTPS
+obbligatorio, permessi minimi, JWT lato server).
 
 ## Verifica dell'integrità
 
