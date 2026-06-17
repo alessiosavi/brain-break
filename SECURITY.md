@@ -3,9 +3,9 @@
 Questa pagina riporta in modo trasparente l'analisi di sicurezza dell'APK di
 Brain Break, così puoi installarlo con fiducia.
 
-- **App analizzata:** `brain-break-0.0.1-arm64-v8a.apk`
+- **App analizzata:** `brain-break-0.0.1-universal.apk` (`com.alessiosavi.brainbreak`)
 - **Strumento:** [MobSF](https://github.com/MobSF/Mobile-Security-Framework-MobSF) — analisi **statica** e **dinamica**
-- **Firma:** certificato di rilascio dedicato (`CN=Brain Break, O=Alessio Savi`; impronta SHA-256 del certificato `0d6521209d665ad713a9e34167a09365122ed1cd28313317d0ee294ad22cc359`)
+- **Firma:** certificato di rilascio dedicato (`CN=Brain Break, O=Alessio Savi`; impronta SHA-256 del certificato `cda84e991788cb1428c9977df608cc5e0424274fcb32f1874c4a65bb6cc14629`)
 
 ## Esito in breve
 
