@@ -21,6 +21,13 @@ findings_md="$(render_scan_md)"
 echo "$findings_md" | grep -qi "riscontri da verificare" || { echo "footer not conditional on findings"; exit 1; }
 if echo "$findings_md" | grep -qi "APK pulito"; then echo "footer wrongly claims clean APK despite findings"; exit 1; fi
 
+# Accepted-only case: raw HIGH=1 but gated=0 -> verdict should read clean.
+export MOBSF_HIGH=1 MOBSF_HIGH_GATED=0 VT_MALICIOUS=0 VT_SUSPICIOUS=0
+accepted_md="$(render_scan_md)"
+echo "$accepted_md" | grep -qi "APK pulito" || { echo "gated=0 should render clean verdict"; exit 1; }
+if echo "$accepted_md" | grep -qi "riscontri da verificare"; then echo "gated=0 should not flag findings"; exit 1; fi
+unset MOBSF_HIGH_GATED
+
 export MOBSF_HIGH=1 VT_MALICIOUS=3
 issue="$(render_issue_md)"
 echo "$issue" | grep -qi "v0.0.2" || { echo "issue missing tag"; exit 1; }

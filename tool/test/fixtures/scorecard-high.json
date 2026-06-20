@@ -1,0 +1,10 @@
+{
+  "security_score": 62,
+  "high": [
+    {"title": "App can be installed on a vulnerable unpatched Android version 7.0, [minSdk=24]"},
+    {"title": "Clear text traffic is Enabled For App"}
+  ],
+  "warning": [],
+  "info": [],
+  "secure": []
+}

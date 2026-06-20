@@ -116,7 +116,9 @@ jobs:
       - name: Open/update tracking issue on findings
         run: |
           det=$(( ${VT_MALICIOUS:-0} + ${VT_SUSPICIOUS:-0} ))
-          if [ "${MOBSF_HIGH:-0}" -gt 0 ] || [ "$det" -gt 0 ]; then
+          # Gate on HIGH findings NOT already accepted in security/accepted-findings.txt.
+          high_gate="${MOBSF_HIGH_GATED:-${MOBSF_HIGH:-0}}"
+          if [ "$high_gate" -gt 0 ] || [ "$det" -gt 0 ]; then
             # shellcheck source=/dev/null
             source tool/lib/render.sh
             render_issue_md > issue-body.md
