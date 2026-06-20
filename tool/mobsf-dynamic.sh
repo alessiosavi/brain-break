@@ -27,8 +27,10 @@ docker run -d --name mobsf --network host \
   -e MOBSF_ANALYZER_IDENTIFIER=127.0.0.1:5555 \
   opensecurity/mobile-security-framework-mobsf:latest
 
-for _ in $(seq 1 60); do
-  [ "$(curl -s -o /dev/null -w '%{http_code}' "${MOBSF}/" || true)" = "200" ] && break
+# Poll the non-gated /login/ page ('/' is @login_required -> 302). Any 2xx/3xx = up.
+for _ in $(seq 1 80); do
+  code="$(curl -s -o /dev/null -w '%{http_code}' "${MOBSF}/login/" || true)"
+  case "$code" in 2??|3??) break ;; esac
   sleep 3
 done
 
