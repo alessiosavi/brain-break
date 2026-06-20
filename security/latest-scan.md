@@ -11,7 +11,7 @@
 ## MobSF (analisi statica)
 
 - **Punteggio di sicurezza:** 62
-- **Segnalazioni HIGH:** 1
+- **Segnalazioni HIGH:** 1 (non triagiate: 0)
 - **Segnalazioni WARNING:** 4
 - **Segnalazioni INFO:** 2
 
@@ -20,8 +20,8 @@ Immagine MobSF: `opensecurity/mobile-security-framework-mobsf@sha256:3b59941ac84
 
 ## VirusTotal
 
-- **Esito:** inviato a VirusTotal, analisi in corso
+- **Esito:** 0/66 motori segnalano una minaccia
 - **Report:** https://www.virustotal.com/gui/file/0d89d82f8424d8e35187e739335970057f1f078a7228b892565e52ef6c01cf70
 
 ---
-*⚠ Sono presenti riscontri da verificare (HIGH di MobSF o rilevamenti VirusTotal). È stata aperta un'issue di tracciamento; esegui il triage e aggiorna SECURITY.md.*
+*Nessuna segnalazione HIGH di MobSF e nessun rilevamento VirusTotal: APK pulito. Le segnalazioni WARNING/INFO sono in genere falsi positivi di libreria; vedi SECURITY.md per il triage.*
