@@ -17,7 +17,7 @@ mentre giochi ti accorgi di tutto quello che è successo ieri.
 
 Invece di startene seduto davanti al telegiornale, ti prendi una pausa — un
 *brain break*, appunto — e ti informi divertendoti. Impari senza nemmeno
-accorgertene, e torni il giorno dopo per continuare la tua striscia.
+accorgertene, e torni il giorno dopo per non interrompere la serie.
 
 Niente palinsesti, niente attesa. Solo tu, un minuto al giorno, e le notizie
 che contano.
@@ -26,7 +26,7 @@ che contano.
 
 - 🗓️ **Un round al giorno**, dieci domande sui fatti di ieri.
 - ⏱️ **Un minuto di tempo**, una risposta alla volta.
-- 🔥 **Striscia giornaliera**: torna ogni giorno per non perderla.
+- 🔥 **Serie giornaliera**: torna ogni giorno per non interromperla.
 - 🏆 **Classifica** per sfidare gli altri giocatori.
 
 ## Scarica e installa (Android)
@@ -34,8 +34,8 @@ che contano.
 L'app si scarica dalla pagina delle
 **[Release](https://github.com/alessiosavi/brain-break/releases/latest)**:
 
-1. Apri l'ultima release e scarica `brain-break-<versione>-arm64-v8a.apk` (per
-   telefoni Android moderni a 64 bit — praticamente tutti quelli degli ultimi anni).
+1. Apri l'ultima release e scarica `brain-break-<versione>-universal.apk` (APK
+   universale: funziona su tutti i telefoni Android, vecchi e nuovi).
 2. Sul telefono apri il file e, se richiesto, consenti **«Installa app
    sconosciute»** per il browser o il gestore file.
 3. Apri l'app, registrati e inizia a giocare.
@@ -56,5 +56,6 @@ microfono, SMS o file personali:
 dell'APK: confrontalo con `shasum -a 256 <file>` (macOS), `sha256sum <file>`
 (Linux) o `certutil -hashfile <file> SHA256` (Windows).
 
-L'app è firmata con il certificato di rilascio **AppVibing** e, al momento
-dell'installazione, viene analizzata automaticamente da **Google Play Protect**.
+L'app è firmata con un certificato di rilascio dedicato (**CN=Brain Break,
+O=Alessio Savi**) e, al momento dell'installazione, viene analizzata
+automaticamente da **Google Play Protect**.
