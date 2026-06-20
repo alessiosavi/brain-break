@@ -7,6 +7,8 @@ here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$here/lib/mobsf_parse.sh"
 # shellcheck source=/dev/null
 source "$here/lib/http.sh"
+# shellcheck source=/dev/null
+source "$here/lib/gate.sh"
 
 APK="${1:?usage: mobsf-scan.sh <apk> <out-dir>}"
 OUT="${2:?usage: mobsf-scan.sh <apk> <out-dir>}"
@@ -58,3 +60,7 @@ if ! jq -e '(has("error")|not) and has("high")' "${OUT}/scorecard.json" >/dev/nu
 fi
 
 mobsf_counts "${OUT}/scorecard.json"   # key=value to stdout
+
+# HIGH findings minus those already triaged/accepted (security/accepted-findings.txt).
+# The release gate keys on this so accepted items don't re-open an issue every release.
+echo "MOBSF_HIGH_GATED=$(high_unaccepted "${OUT}/scorecard.json" "$here/../security/accepted-findings.txt")"

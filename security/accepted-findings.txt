@@ -1,0 +1,10 @@
+# Findings already triaged and ACCEPTED in SECURITY.md. The release gate will NOT
+# open a tracking issue for a MobSF HIGH finding whose title contains one of these
+# substrings (case-insensitive). New / unexpected HIGH findings still alert.
+#
+# Format: one fixed substring per line. Lines starting with '#' and blank lines
+# are ignored. Keep this in sync with the triage in SECURITY.md.
+
+# SECURITY.md item #1 — Flutter's default minSdk; the app is installable on
+# Android 7.0. Accepted low-risk hardening note, not an app vulnerability.
+minSdk=24

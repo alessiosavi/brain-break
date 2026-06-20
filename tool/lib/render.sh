@@ -2,9 +2,11 @@
 # Pure markdown rendering from env vars. No network.
 
 _verdict_line() {
-  local det
+  local det hi
   det=$(( ${VT_MALICIOUS:-0} + ${VT_SUSPICIOUS:-0} ))
-  if [ "${MOBSF_HIGH:-0}" -eq 0 ] && [ "$det" -eq 0 ]; then
+  # Base the verdict on non-accepted HIGH findings (accepted ones are triaged).
+  hi="${MOBSF_HIGH_GATED:-${MOBSF_HIGH:-0}}"
+  if [ "$hi" -eq 0 ] && [ "$det" -eq 0 ]; then
     printf '*Nessuna segnalazione HIGH di MobSF e nessun rilevamento VirusTotal: APK pulito. Le segnalazioni WARNING/INFO sono in genere falsi positivi di libreria; vedi SECURITY.md per il triage.*'
   else
     printf '*⚠ Sono presenti riscontri da verificare (HIGH di MobSF o rilevamenti VirusTotal). È stata aperta un'\''issue di tracciamento; esegui il triage e aggiorna SECURITY.md.*'
@@ -39,7 +41,7 @@ render_scan_md() {
 ## MobSF (analisi statica)
 
 - **Punteggio di sicurezza:** ${MOBSF_SCORE}
-- **Segnalazioni HIGH:** ${MOBSF_HIGH}
+- **Segnalazioni HIGH:** ${MOBSF_HIGH}${MOBSF_HIGH_GATED:+ (non triagiate: ${MOBSF_HIGH_GATED})}
 - **Segnalazioni WARNING:** ${MOBSF_WARNING}
 - **Segnalazioni INFO:** ${MOBSF_INFO}
 

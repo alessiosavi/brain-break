@@ -20,6 +20,14 @@ Two GitHub Actions workflows scan the published APK.
   see little of a Flutter app's Dart/BoringSSL stack — the static scan remains the
   primary signal.
 
+## Accepted findings (issue-gate allowlist)
+MobSF can flag items you've already triaged and accepted in `SECURITY.md` as HIGH
+(e.g. Flutter's default `minSdk=24`). To stop those from re-opening a tracking issue
+every release, list a fixed substring of each accepted finding's title in
+`security/accepted-findings.txt` (one per line, `#` comments allowed). The gate keys on
+HIGH findings **not** matched by that file; new/unexpected HIGH findings still alert.
+Keep this file in sync with the `SECURITY.md` triage.
+
 ## Re-running
 Trigger `security-scan.yml` manually (Actions → Security scan (release) → Run workflow)
 with a tag to re-scan an existing release.
