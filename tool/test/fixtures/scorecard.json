@@ -1,0 +1,16 @@
+{
+  "security_score": 72,
+  "high": [],
+  "warning": [
+    {"title": "Application Data can be Backed up", "section": "manifest"},
+    {"title": "Janus Vulnerability", "section": "manifest"}
+  ],
+  "info": [
+    {"title": "App uses SQLite Database", "section": "code"}
+  ],
+  "secure": [
+    {"title": "HTTPS only (cleartext disabled)", "section": "manifest"}
+  ],
+  "hotspot": [],
+  "total_trackers": 0
+}

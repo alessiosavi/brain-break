@@ -1,0 +1,15 @@
+{
+  "data": {
+    "id": "abc123",
+    "type": "file",
+    "attributes": {
+      "last_analysis_stats": {
+        "malicious": 0,
+        "suspicious": 0,
+        "undetected": 12,
+        "harmless": 58,
+        "timeout": 0
+      }
+    }
+  }
+}

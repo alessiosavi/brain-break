@@ -117,3 +117,13 @@ Ogni release pubblica lo **SHA-256** dell'APK nelle
 [Release](https://github.com/alessiosavi/brain-break/releases). Confrontalo con
 `shasum -a 256 <file>` / `sha256sum <file>` / `certutil -hashfile <file> SHA256`.
 Al primo avvio, **Google Play Protect** analizza comunque l'app sul dispositivo.
+
+## Scansioni automatiche (CI)
+
+Oltre a questo triage curato a mano, ogni release viene analizzata
+**automaticamente** da una pipeline CI (MobSF statico + VirusTotal). I report
+sono allegati alla relativa
+[release](https://github.com/alessiosavi/brain-break/releases) e un riepilogo
+leggibile è in [`security/latest-scan.md`](./security/latest-scan.md) (storico in
+[`security/history/`](./security/history/)). Questa pagina resta la fonte di
+verità con il triage di ogni segnalazione.
