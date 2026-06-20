@@ -1,0 +1,124 @@
+name: Security scan (release)
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to (re)scan, e.g. v0.0.2"
+        required: true
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: security-scan-${{ github.event.release.tag_name || inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      VT_API_KEY: ${{ secrets.VT_API_KEY }}
+      TAG: ${{ github.event.release.tag_name || inputs.tag }}
+      PKG: com.alessiosavi.brainbreak
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve scan date
+        run: echo "SCAN_DATE=$(date -u +%Y-%m-%d)" >> "$GITHUB_ENV"
+
+      - name: Download APK from release
+        run: |
+          mkdir -p dist out
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern '*.apk' --dir dist --clobber
+          shopt -s nullglob
+          apks=(dist/*.apk)
+          apk="${apks[0]:-}"
+          [ -n "$apk" ] || { echo "no APK asset on $TAG"; exit 1; }
+          echo "APK=$apk" >> "$GITHUB_ENV"
+
+      - name: Start MobSF
+        run: |
+          MOBSF_API_KEY="$(openssl rand -hex 32)"
+          echo "::add-mask::$MOBSF_API_KEY"
+          echo "MOBSF_API_KEY=$MOBSF_API_KEY" >> "$GITHUB_ENV"
+          docker run -d --name mobsf -e MOBSF_API_KEY="$MOBSF_API_KEY" \
+            -p 8000:8000 opensecurity/mobile-security-framework-mobsf:latest
+          digest="$(docker inspect --format='{{index .RepoDigests 0}}' \
+            opensecurity/mobile-security-framework-mobsf:latest 2>/dev/null || echo 'opensecurity/mobile-security-framework-mobsf:latest')"
+          echo "MOBSF_IMAGE_DIGEST=$digest" >> "$GITHUB_ENV"
+
+      - name: MobSF static scan
+        run: bash tool/mobsf-scan.sh "$APK" out >> "$GITHUB_ENV"
+
+      - name: VirusTotal check
+        run: bash tool/vt-scan.sh "$APK" out >> "$GITHUB_ENV"
+
+      - name: Compute SHA-256
+        run: echo "SHA256=$(sha256sum "$APK" | cut -d' ' -f1)" >> "$GITHUB_ENV"
+
+      - name: Render summaries
+        run: |
+          # shellcheck source=/dev/null
+          source tool/lib/render.sh
+          render_scan_md | tee security/latest-scan.md > "security/history/${TAG}.md"
+          render_scan_md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Attach reports to release
+        run: |
+          cp out/report.pdf      "mobsf-report-${TAG}.pdf"
+          cp out/report.json     "mobsf-report-${TAG}.json"
+          cp out/scorecard.json  "mobsf-scorecard-${TAG}.json"
+          gh release upload "$TAG" \
+            "mobsf-report-${TAG}.pdf" "mobsf-report-${TAG}.json" "mobsf-scorecard-${TAG}.json" \
+            --repo "$GITHUB_REPOSITORY" --clobber
+
+      - name: Append VirusTotal link to release notes
+        run: |
+          current="$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json body -q .body)"
+          marker="<!-- security-scan -->"
+          if printf '%s' "$current" | grep -q "$marker"; then
+            echo "notes already annotated; skipping"
+          else
+            printf '%s\n\n---\n%s\n🔒 **VirusTotal:** %s\n🧪 **MobSF:** punteggio %s, HIGH %s — report allegati.\n' \
+              "$current" "$marker" "$VT_GUI_URL" "$MOBSF_SCORE" "$MOBSF_HIGH" \
+              | gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --notes-file -
+          fi
+
+      - name: Commit summaries back
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add security/latest-scan.md "security/history/${TAG}.md"
+          if git diff --cached --quiet; then
+            echo "no summary changes"
+          else
+            git commit -m "chore(security): scan summary for ${TAG} [skip ci]"
+            git push
+          fi
+
+      - name: Open/update tracking issue on findings
+        run: |
+          det=$(( ${VT_MALICIOUS:-0} + ${VT_SUSPICIOUS:-0} ))
+          if [ "${MOBSF_HIGH:-0}" -gt 0 ] || [ "$det" -gt 0 ]; then
+            # shellcheck source=/dev/null
+            source tool/lib/render.sh
+            render_issue_md > issue-body.md
+            title="⚠ Security findings in ${TAG}"
+            num="$(gh issue list --repo "$GITHUB_REPOSITORY" --state open \
+                    --search "in:title ${title}" --json number,title \
+                    -q ".[] | select(.title==\"${title}\") | .number" | head -n1)"
+            if [ -z "$num" ]; then
+              gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" \
+                --body-file issue-body.md --label security || \
+              gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" --body-file issue-body.md
+            else
+              gh issue comment "$num" --repo "$GITHUB_REPOSITORY" --body-file issue-body.md
+            fi
+          else
+            echo "no findings — staying green"
+          fi
