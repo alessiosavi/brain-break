@@ -5,6 +5,8 @@ set -euo pipefail
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=/dev/null
 source "$here/lib/mobsf_parse.sh"
+# shellcheck source=/dev/null
+source "$here/lib/http.sh"
 
 APK="${1:?usage: mobsf-scan.sh <apk> <out-dir>}"
 OUT="${2:?usage: mobsf-scan.sh <apk> <out-dir>}"
@@ -16,12 +18,19 @@ auth=(-H "Authorization: ${MOBSF_API_KEY}")
 
 log "waiting for MobSF at ${MOBSF_URL}"
 ready=0
-for _ in $(seq 1 60); do
-  code="$(curl -s -o /dev/null -w '%{http_code}' "${MOBSF_URL}/" || true)"
-  [ "$code" = "200" ] && { ready=1; break; }
+last_code=""
+# Poll the non-gated /login/ page; '/' is @login_required and 302-redirects.
+for i in $(seq 1 80); do
+  last_code="$(curl -s -o /dev/null -w '%{http_code}' "${MOBSF_URL}/login/" || true)"
+  if http_up "$last_code"; then ready=1; break; fi
+  [ $(( i % 10 )) -eq 0 ] && log "still waiting (HTTP ${last_code}, attempt ${i}/80)"
   sleep 3
 done
-[ "$ready" -eq 1 ] || { log "MobSF never became ready"; exit 1; }
+if [ "$ready" -ne 1 ]; then
+  log "MobSF never became ready (last HTTP ${last_code})"
+  command -v docker >/dev/null 2>&1 && docker logs mobsf 2>&1 | tail -60 >&2 || true
+  exit 1
+fi
 
 log "uploading APK"
 hash="$(curl -s -X POST "${MOBSF_URL}/api/v1/upload" "${auth[@]}" \
