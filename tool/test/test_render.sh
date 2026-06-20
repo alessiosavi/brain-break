@@ -11,9 +11,15 @@ export VT_GUI_URL="https://www.virustotal.com/gui/file/deadbeef"
 export MOBSF_IMAGE_DIGEST="opensecurity/...@sha256:abc"
 
 md="$(render_scan_md)"
-for needle in "v0.0.2" "deadbeef" "MobSF" "VirusTotal" "0/70" "generato automaticamente"; do
+for needle in "v0.0.2" "deadbeef" "MobSF" "VirusTotal" "0/70" "generato automaticamente" "APK pulito"; do
   echo "$md" | grep -qi "$needle" || { echo "scan_md missing: $needle"; exit 1; }
 done
+
+# Findings case: footer must NOT claim "pulito" and SHOULD flag riscontri.
+export MOBSF_HIGH=1 VT_MALICIOUS=0 VT_SUSPICIOUS=0
+findings_md="$(render_scan_md)"
+echo "$findings_md" | grep -qi "riscontri da verificare" || { echo "footer not conditional on findings"; exit 1; }
+if echo "$findings_md" | grep -qi "APK pulito"; then echo "footer wrongly claims clean APK despite findings"; exit 1; fi
 
 export MOBSF_HIGH=1 VT_MALICIOUS=3
 issue="$(render_issue_md)"

@@ -38,4 +38,14 @@ curl -s -X POST "${MOBSF_URL}/api/v1/scorecard" "${auth[@]}" \
 curl -s -X POST "${MOBSF_URL}/api/v1/download_pdf" "${auth[@]}" \
   --data-urlencode "hash=${hash}" -o "${OUT}/report.pdf"
 
+# Guard: MobSF can return a JSON error object (e.g. {"error":"..."}) with HTTP 200
+# from /scorecard. That parses to HIGH=0 and would make the security gate go GREEN
+# on a failed scan. A real scorecard always carries the finding arrays; an error
+# object does not. Fail loudly instead of reporting a false clean result.
+if ! jq -e '(has("error")|not) and has("high")' "${OUT}/scorecard.json" >/dev/null 2>&1; then
+  log "scorecard is not a valid MobSF scorecard (error/empty response):"
+  cat "${OUT}/scorecard.json" >&2 || true
+  exit 1
+fi
+
 mobsf_counts "${OUT}/scorecard.json"   # key=value to stdout

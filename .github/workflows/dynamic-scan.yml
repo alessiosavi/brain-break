@@ -49,7 +49,7 @@ jobs:
 
       - name: Run dynamic analysis on emulator
         continue-on-error: true
-        uses: reactivecircus/android-emulator-runner@v2   # pin to a SHA before relying on it
+        uses: reactivecircus/android-emulator-runner@e89f39f1abbbd05b1113a29cf4db69e7540cae5a # v2.37.0
         with:
           api-level: 28
           target: google_apis        # NEVER google_apis_playstore (cannot root)

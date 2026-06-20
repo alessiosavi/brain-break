@@ -1,6 +1,16 @@
 #!/usr/bin/env bash
 # Pure markdown rendering from env vars. No network.
 
+_verdict_line() {
+  local det
+  det=$(( ${VT_MALICIOUS:-0} + ${VT_SUSPICIOUS:-0} ))
+  if [ "${MOBSF_HIGH:-0}" -eq 0 ] && [ "$det" -eq 0 ]; then
+    printf '*Nessuna segnalazione HIGH di MobSF e nessun rilevamento VirusTotal: APK pulito. Le segnalazioni WARNING/INFO sono in genere falsi positivi di libreria; vedi SECURITY.md per il triage.*'
+  else
+    printf '*⚠ Sono presenti riscontri da verificare (HIGH di MobSF o rilevamenti VirusTotal). È stata aperta un'\''issue di tracciamento; esegui il triage e aggiorna SECURITY.md.*'
+  fi
+}
+
 _vt_line() {
   case "${VT_STATE:-unknown}" in
     found)
@@ -42,7 +52,7 @@ Immagine MobSF: \`${MOBSF_IMAGE_DIGEST}\`.
 - **Report:** ${VT_GUI_URL}
 
 ---
-*Nessuna segnalazione HIGH di MobSF e nessun rilevamento VirusTotal indicano un APK pulito. Le segnalazioni WARNING/INFO sono in genere falsi positivi di libreria; vedi SECURITY.md per il triage.*
+$(_verdict_line)
 MD
 }
 

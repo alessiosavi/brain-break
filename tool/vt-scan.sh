@@ -6,8 +6,14 @@ here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=/dev/null
 source "$here/lib/vt_parse.sh"
 
-APK="${1:?usage: vt-scan.sh <apk> <out-dir>}"
-OUT="${2:?usage: vt-scan.sh <apk> <out-dir>}"
+# Soft arg guards: `${1:?}` would exit non-zero, breaking the never-fail contract.
+APK="${1:-}"
+OUT="${2:-}"
+if [ -z "$APK" ] || [ -z "$OUT" ]; then
+  echo "[vt] usage: vt-scan.sh <apk> <out-dir>" >&2
+  echo "VT_STATE=unknown"
+  exit 0
+fi
 mkdir -p "$OUT"
 log() { echo "[vt] $*" >&2; }
 
@@ -34,7 +40,7 @@ fi
 if [ "$http" = "404" ]; then
   # Best-effort submit. Large files (>32MB) need upload_url and may 403 on free keys.
   log "not on VT; attempting best-effort submission"
-  size="$(stat -f%z "$APK" 2>/dev/null || stat -c%s "$APK")"
+  size="$(stat -f%z "$APK" 2>/dev/null || stat -c%s "$APK" 2>/dev/null || echo 0)"
   if [ "$size" -lt $((32*1024*1024)) ]; then
     up="https://www.virustotal.com/api/v3/files"
   else
